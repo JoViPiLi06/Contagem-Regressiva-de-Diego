@@ -1,6 +1,10 @@
-import tkinter as tk
-from tkinter import messagebox
-import datetime
+import kivy
+from kivy.app import App
+from kivy.uix.label import Label
+from kivy.uix.button import Button
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.popup import Popup
+from datetime import datetime, timedelta, time
 import webbrowser
 
 # Lista de dias letivos
@@ -20,73 +24,60 @@ dias_letivos = {
 
 # Função para calcular o dia do ano
 def calcular_dia_ano(data):
-    primeiro_dia_ano = datetime.datetime(data.year, 1, 1)
+    primeiro_dia_ano = datetime(data.year, 1, 1)
     return (data - primeiro_dia_ano).days + 1
 
 # Função para calcular a data do último dia letivo
 def calcular_ultimo_dia_letivo():
-    hoje = datetime.datetime.now()
+    hoje = datetime.now()
     dias_letivos_totais = sum(len(dias) for dias in dias_letivos.values())
     primeiro_dia_ano = hoje.replace(month=2, day=27)  # Primeiro dia letivo
-    ultimo_dia_letivo = primeiro_dia_ano + datetime.timedelta(days=dias_letivos_totais - 1)
+    ultimo_dia_letivo = primeiro_dia_ano + timedelta(days=dias_letivos_totais - 1)
     return ultimo_dia_letivo
 
 # Função para calcular o tempo restante até o final do ano letivo
 def calcular_tempo_restante():
-    hoje = datetime.datetime.now()
+    hoje = datetime.now()
     ultimo_dia_letivo = calcular_ultimo_dia_letivo()
     tempo_restante = ultimo_dia_letivo - hoje
     return tempo_restante
 
 # Verifica se é hora de tocar o vídeo
 def verificar_video():
-    agora = datetime.datetime.now()
-    if agora.time() >= datetime.time(6, 45) and agora.time() <= datetime.time(6, 46):
+    agora = datetime.now()
+    if agora.time() >= time(6, 45) and agora.time() <= time(6, 46):
         webbrowser.open("https://www.youtube.com/watch?v=WPzMxiGd0io")
 
 # Exibe a contagem regressiva
-def exibir_contagem_regressiva():
+def exibir_contagem_regressiva(*args):
     tempo_restante = calcular_tempo_restante()
     dias_restantes = tempo_restante.days
     horas, segundos = divmod(tempo_restante.seconds, 3600)
     minutos, segundos = divmod(segundos, 60)
-    messagebox.showinfo("Contagem regressiva",
-                        f"Contagem regressiva para o fim de ano letivo de Diego interdimensional!\n\n"
-                        f"Tempo restante até o fim do ano letivo:\n"
-                        f"Dias: {dias_restantes}\n"
-                        f"Horas: {horas}\n"
-                        f"Minutos: {minutos}\n"
-                        f"Segundos: {segundos}")
+    popup = Popup(title='Contagem regressiva',
+                  content=Label(text=f"Contagem regressiva para o fim de ano letivo de Diego interdimensional!\n\n"
+                                     f"Tempo restante até o fim do ano letivo:\n"
+                                     f"Dias: {dias_restantes}\n"
+                                     f"Horas: {horas}\n"
+                                     f"Minutos: {minutos}\n"
+                                     f"Segundos: {segundos}"),
+                  size_hint=(None, None), size=(500, 500))
+    popup.open()
 
 # Função para atualizar a contagem regressiva
 def atualizar_contagem():
     verificar_video()
     exibir_contagem_regressiva()
 
-# Interface Gráfica
-root = tk.Tk()
-root.title("Contagem Regressiva")
-root.configure(background='white')  # Define o fundo da janela como branco
+class ContagemRegressivaApp(App):
+    def build(self):
+        layout = BoxLayout(orientation='vertical')
+        layout.add_widget(Label(text="Contagem regressiva para o fim de ano"))
+        btn_contagem = Button(text="Exibir Contagem Regressiva", on_press=exibir_contagem_regressiva)
+        btn_atualizar = Button(text="Atualizar Contagem Regressiva", on_press=atualizar_contagem)
+        layout.add_widget(btn_contagem)
+        layout.add_widget(btn_atualizar)
+        return layout
 
-# Adicione estas linhas para definir a janela para a orientação horizontal
-largura = 600
-altura = 400
-largura_tela = root.winfo_screenwidth()
-altura_tela = root.winfo_screenheight()
-posicao_x = largura_tela // 2 - largura // 2
-posicao_y = altura_tela // 2 - altura // 2
-root.geometry(f"{largura}x{altura}+{posicao_x}+{posicao_y}")
-
-# Label para o título
-titulo = tk.Label(root, text="Contagem regressiva para o fim de ano letivo de Diego interdimensional!", bg='white', fg='black')
-titulo.pack(pady=10)
-
-# Botão para exibir a contagem regressiva
-btn_contagem = tk.Button(root, text="Exibir Contagem Regressiva", command=exibir_contagem_regressiva, bg='blue', fg='white')
-btn_contagem.pack(pady=10)
-
-# Botão para atualizar a contagem regressiva
-btn_atualizar = tk.Button(root, text="Atualizar Contagem Regressiva", command=atualizar_contagem, bg='green', fg='white')
-btn_atualizar.pack(pady=10)
-
-root.mainloop()
+if __name__ == "__main__":
+    ContagemRegressivaApp().run()
